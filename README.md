@@ -1,3 +1,5 @@
+Repo URL - https://github.com/AnJiCU28/nngp-project.git
+
 # NNGP Phase Diagram Reproduction with Erf Extension
 
 This project reproduces the phase-diagram experiment from Figure 4 of Lee et al., *Deep Neural Networks as Gaussian Processes* (ICLR 2018), using the authors' original `brain-research/nngp` codebase.
