@@ -139,3 +139,5 @@ These changes reduce computational cost while preserving the main comparison bet
 ## References
 
 Lee, J., Bahri, Y., Novak, R., Schoenholz, S. S., Pennington, J., & Sohl-Dickstein, J. (2018). *Deep Neural Networks as Gaussian Processes*. International Conference on Learning Representations (ICLR). https://openreview.net/forum?id=B1EA-M-0Z
+
+Lee, J., Bahri, Y., Novak, R., Schoenholz, S. S., Pennington, J., & Sohl-Dickstein, J. (2018). *NNGP: Deep Neural Networks as Gaussian Processes* [Computer software]. GitHub. https://github.com/brain-research/nngp
