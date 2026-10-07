@@ -1,61 +1,128 @@
-# NNGP: Deep Neural Network Kernel for Gaussian Process
+# NNGP Phase Diagram Reproduction and Erf Extension
 
-TensorFlow open source implementation of
+This project reproduces the phase-diagram experiment from Figure 4 of Lee et al., *Deep Neural Networks as Gaussian Processes* (ICLR 2018), using the authors' original `brain-research/nngp` codebase.
 
-[**Deep Neural Networks as Gaussian Processes**](https://arxiv.org/abs/1711.00165)
+The reproduction evaluates NNGP classification accuracy across different weight and bias variances. The original Tanh and ReLU nonlinearities are reproduced, and the project is extended by adding the error-function (Erf) nonlinearity.
 
+### Original vs. Reproduction
 
-by Jaehoon Lee*, Yasaman Bahri*, Roman Novak, Sam Schoenholz, Jeffrey Pennington,
-Jascha Sohl-dickstein
+| Original Figure 4 | Reproduction |
+| --- | --- |
+| <img src="figures/original_figure4.png" width="500"> | <img src="figures/reproduction_figure4.png" width="500"> |
+| Lee et al. Figure 4 | Tanh, ReLU, and Erf results from this project |
 
-Presented at the International Conference on Learning Representation(ICLR) 2018.
+The reproduction shows the same general structure as the paper. Tanh produces a diagonal region of high accuracy as weight and bias variance change, while ReLU produces a narrower high-accuracy region primarily controlled by weight variance. The third panel shows the Erf extension.
 
-## UPDATE (September 2020):
-See also [Neural Tangents: Fast and Easy Infinite Neural Networks in Python](https://arxiv.org/abs/1912.02803) (ICLR 2020)
-available at [github.com/google/neural-tangents](https://github.com/google/neural-tangents) for 
-more up-to-date progress on computing NNGP as well as NT kernels supporting wide variety of architectural components.
+---
 
+## Reproducing the Project
 
-## Overview
-A deep neural network with i.i.d. priors over its parameters is equivalent to a 
-Gaussian process in the limit of infinite network width. The Neural Network
-Gaussian Process (NNGP) is fully described by a covariance kernel determined by 
-corresponding architecture.
+### Requirements
 
-This code constructs covariance kernel for the Gaussian process that is equivalent to
-infinitely wide, fully connected, deep neural networks. 
+- Docker
+- Git
 
-## Usage
+The Docker image uses the TensorFlow 1.15 environment required by the original NNGP repository.
 
-To use the code, run `run_experiments.py`,
-which uses NNGP kernel to make full Bayesian prediction on the MNIST dataset.
+### 1. Clone the repository
 
-
-```python
-python run_experiments.py \
-       --num_train=100 \
-       --num_eval=10000 \
-       --hparams='nonlinearity=relu,depth=100,weight_var=1.79,bias_var=0.83' \
+```
+git clone https://github.com/AnJiCU28/nngp-project.git
+cd nngp-project
 ```
 
-## Contact
-***Code author:*** Jaehoon Lee, Yasaman Bahri, Roman Novak
+### 2. Build Docker image
 
-***Pull requests and issues:*** @jaehlee
-
-## Citation
-If you use this code, please cite our paper:
 ```
-  @article{
-    lee2018deep,
-    title={Deep Neural Networks as Gaussian Processes},
-    author={Jaehoon Lee, Yasaman Bahri, Roman Novak, Sam Schoenholz, Jeffrey Pennington, Jascha Sohl-dickstein},
-    journal={International Conference on Learning Representations},
-    year={2018},
-    url={https://openreview.net/forum?id=B1EA-M-0Z},
-  }
+docker build --platform linux/amd64 -t nngp-project .
 ```
 
-## Note
+### 3. Run project
 
-This is not an official Google product.
+```
+docker run --platform linux/amd64 \
+  -v "$(pwd)/output":/nngp/output \
+  nngp-project
+```
+
+#### Run project with Windows
+
+Git Bash performs automatic path conversion which interferes with the Linux pathing. The conversion is disable when running the container with the following:
+
+```
+MSYS_NO_PATHCONV=1 docker run --platform linux/amd64 \
+  -v "$(pwd)/output":/nngp/output \
+  nngp-project
+```
+
+### Output files
+
+When the contain finishes, the following are written to `output/`:
+
+```
+demo_phase_grid.csv
+demo_phase_diagram.png
+phase_diagram_three_panel.png
+```
+
+---
+
+## Experiment
+
+The main reproduction uses:
+- Dataset: MNIST
+- Training examples: 3,000
+- Evaluation examples: 1,000
+- Network depth: 50
+- Weight variance range: 0.1 to 5.0
+- Bias variance range: 0.0 to 2.0
+- Hyperparameter grid: 10 x 10
+- Nonlinearities: Tanh, ReLU, and Erf
+The full Tanh and ReLU experiments use the original numerical lookup-grid settings:
+
+```
+n_gauss = 501
+n_var   = 501
+n_corr  = 500
+```
+
+The Erf experiment uses:
+
+```
+n_gauss = 201
+n_var   = 201
+n_corr  = 200
+```
+
+A smaller Erf lookup grid was necessary due to memory limitations
+
+---
+
+## Unique Extension: Erf Nonlinearity
+
+The original Figure 4 compares the behavior of Tanh and ReLU NNGP kernels as weight and bias variance change. My extension adds the error-function activation,
+\[
+\phi(x) = \operatorname{erf}(x),
+\]
+and repeats the same phase-grid experiment. I chose Erf because it is a bounded, smooth nonlinearity like Tanh, but it has a different functional form. This makes it useful for testing whether the structure visible in the Tanh phase diagram is specific to Tanh or is also present for another smooth bounded activation.
+The original NNGP implementation supports numerical evaluation of kernel recursions for pointwise nonlinearities. I added Erf to run_experiments.py using TensorFlow's error-function operation and allowed the existing numerical interpolation-grid code to construct the corresponding NNGP kernel. The experimental procedure was otherwise kept the same as the Tanh and ReLU runs: depth 50, MNIST-3k, and a 10 x 10 sweep over weight and bias variance.
+The Erf results show a clear diagonal region of high test accuracy. This behavior is qualitatively more similar to Tanh than to ReLU. As bias variance increases, the weight variance associated with the best-performing region also tends to increase. The location and width of this region are not identical to Tanh, showing that the choice of smooth nonlinearity changes where strong NNGP performance occurs even when the overall phase-diagram structure is similar.
+The best observed Erf test accuracy in the grid was approximately 0.934, which was comparable to the strongest Tanh and ReLU results in this experiment. The main result of the extension is therefore not that Erf produces substantially higher accuracy, but that another bounded smooth activation produces a similar diagonal high-performance region while shifting its location in hyperparameter space.
+Because generating the original 501 x 501 x 500 numerical interpolation grid for Erf exceeded available memory, the Erf kernel was generated using a 201 x 201 x 200 lookup grid. This is sufficient for the extension experiment but is an additional approximation relative to the original Tanh and ReLU calculations.
+
+---
+
+## Deviations and Limitations
+
+The reproduction does not exactly match the computational scale used in the original paper.
+The main differences are:
+- **Training-set size**: The paper's Figure 4 used MNIST-5k. This project uses MNIST-3k because the 5,000-example covariance calculation exceeded the available Docker memory.
+- **Hyperparameter resolution**: The paper used a 30 x 30 grid, or 900 hyperparameter combinations per nonlinearity. This project uses a 10 x 10 grid, or 100 combinations per nonlinearity.
+- **Erf lookup-grid resolution**: Tanh and ReLU use the original 501/501/500 lookup grids. Erf uses a 201/201/200 grid because the larger numerical grid exceeded available memory.
+- **Docker reproducibility test**: Running the full set of experiments would take substantially longer than is practical for a grading-time Docker test. Therefore, docker run performs a small new experiment to demonstrate the complete computation-to-CSV-to-plot pipeline. The full 10 x 10 experimental CSV files are committed to the repository and are used to regenerate the final three-panel figure.
+- **Theoretical phase boundaries**: This project focuses on reproducing the empirical accuracy heatmaps and does not reproduce the theoretical phase-boundary curves shown alongside the heatmaps in the original paper.
+These changes reduce computational cost while preserving the main comparison between network nonlinearities and the relationship between NNGP performance, weight variance, and bias variance.
+
+figures/original_figure4.png
+
+figures/reproduction_figure4.png
