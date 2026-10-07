@@ -76,7 +76,8 @@ def load_results(input_files):
 
     return rows
 
-
+# Arrange test accuracies by sigma_b^2 and sigma_w^2 so each matrix
+# entry corresponds to one evaluated point in the Figure 4 phase grid.
 def make_accuracy_grid(rows, nonlinearity):
     selected = [
         row for row in rows
@@ -179,7 +180,9 @@ def main():
             accuracy_grid
         ) = data
 
-        # extent makes the axes display actual hyperparameter values.
+        # Plot the empirical accuracy phase diagram in the same form as
+        # Figure 4: sigma_w^2 on the horizontal axis, sigma_b^2 on the
+        # vertical axis, and classification accuracy encoded by color.
         image = ax.imshow(
             accuracy_grid,
             origin="lower",

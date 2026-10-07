@@ -72,7 +72,13 @@ flags.DEFINE_integer('max_var', 100,
 flags.DEFINE_integer('max_gauss', 10,
                      'Range for gaussian integration.')
 
-def erf(x):                         #Allows error function for non-linearity
+# Project extension: add phi(x) = erf(x) as a third pointwise
+# nonlinearity. Section 2.5 of the paper allows general nonlinearities
+# to be handled numerically through the covariance lookup-grid method.
+def erf(x):
+    """Error-function activation."""
+    return tf.math.erf(x)
+def erf(x):
   """Error-function activation."""
   return tf.math.erf(x)
 
@@ -86,6 +92,9 @@ def do_eval(sess, model, x_data, y_data, save_pred=False):
 
   gp_prediction, stability_eps = model.predict(x_data, sess)
 
+  # Figure 4 colors each hyperparameter pair by MNIST classification
+  # accuracy. The GP posterior mean is converted to a class prediction
+  # by choosing the largest output component.
   pred_1 = np.argmax(gp_prediction, axis=1)
   accuracy = np.sum(pred_1 == np.argmax(y_data, axis=1)) / float(len(y_data))
   mse = np.mean(np.mean((gp_prediction - y_data)**2, axis=1))
@@ -130,17 +139,22 @@ def run_nngp_eval(hparams, run_dir):
 
   tf.logging.info('Building Model')
 
+  # Figure 4 compares Tanh and ReLU. This project reproduces those
+  # two cases and adds Erf as the unique-extension nonlinearity.
   if hparams.nonlinearity == 'tanh':
     nonlin_fn = tf.tanh
   elif hparams.nonlinearity == 'relu':
     nonlin_fn = tf.nn.relu
-  elif hparams.nonlinearity == 'erf': #Added for error function non-linearity
+  elif hparams.nonlinearity == 'erf': 
     nonlin_fn = erf
   else:
     raise NotImplementedError
 
   with tf.Session() as sess:
-    # Construct NNGP kernel
+    # Construct the infinite-width NNGP kernel described by the kernel
+    # recursion in Eq. (5) of the paper. For Figure 4, depth, sigma_w^2,
+    # sigma_b^2, and the nonlinearity are varied to study how test
+    # performance changes across the phase diagram.
     nngp_kernel = nngp.NNGPKernel(
         depth=hparams.depth,
         weight_var=hparams.weight_var,

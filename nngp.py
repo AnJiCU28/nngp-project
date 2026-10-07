@@ -192,6 +192,11 @@ class NNGPKernel(object):
         qaa = current_qaa[0]
       return qaa
 
+
+  # Implements the recursive NNGP covariance construction in Eq. (5)
+  # of Lee et al. Starting from the input covariance, each hidden layer
+  # applies the nonlinear covariance map and then the sigma_w^2 and
+  # sigma_b^2 scaling terms.
   def k_full(self, input1, input2=None):
     """Iteratively building the full NNGP kernel.
     """
@@ -208,6 +213,8 @@ class NNGPKernel(object):
       self.k_diag(input1)
       q_aa_init = self.layer_qaa_dict[0]
 
+      # Eq. (5): apply the layer's weight-variance and bias-variance terms
+      # after evaluating the nonlinear covariance expectation.  
       q_ab = cov_init
       q_ab = self.weight_var * q_ab + self.bias_var
       corr = q_ab / q_aa_init[0]
@@ -303,7 +310,10 @@ def _fill_qab_slice(idx, z1, z2, var_aa, corr_ab, nonlin_fn):
   qab_slice = tf.Print(qab_slice, [idx], "Generating slice: ")
   return qab_slice
 
-
+# Implements the numerical covariance-map method described in
+# Section 2.5 of the paper. For nonlinearities without a convenient
+# analytic kernel expression, Gaussian expectations are evaluated on
+# a variance/correlation grid and later interpolated during recursion.
 def _compute_qmap_grid(nonlin_fn,
                        n_gauss,
                        n_var,
@@ -367,6 +377,10 @@ def _compute_qmap_grid(nonlin_fn,
       # Evaluation points for pre-activations variance and correlation
       var_aa = tf.linspace(min_var, max_var, n_var)
     corr_ab = tf.reshape(tf.linspace(-max_corr, max_corr, n_corr), (1, 1, -1))
+
+    # Numerically evaluate E[phi(z)^2] and E[phi(z1)phi(z2)].
+    # These expectations supply the nonlinear covariance transformation
+    # used in the recursive NNGP kernel of Eq. (5).
 
     # compute q_aa
     log_weights_aa_unnorm = -0.5 * (z1**2 / tf.reshape(var_aa, [1, 1, -1]))

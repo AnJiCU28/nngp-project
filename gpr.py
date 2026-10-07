@@ -70,6 +70,10 @@ class GaussianProcessRegression(object):
     tf.logging.info("Using pre-computed Kernel")
     self.k_data_test = self.kern.k_full(self.x_pl, self.x_test_pl)
 
+    # Implements the Gaussian-process posterior prediction corresponding
+    # to Eqs. (8)-(9) of the paper. The NNGP kernel is used as the GP
+    # covariance, and the Cholesky factorization provides an efficient
+    # solution for the posterior mean and covariance.
     with tf.name_scope("build_predict"):
       a = tf.matrix_triangular_solve(self.l, self.k_data_test)
       fmean = tf.matmul(a, self.v, transpose_a=True)
@@ -86,6 +90,9 @@ class GaussianProcessRegression(object):
       self.fmean = fmean
       self.fvar = fvar
 
+  # Factor the training covariance matrix used in the GP posterior
+  # equations. A small diagonal stability term is added for numerical
+  # conditioning.
   def _build_cholesky(self):
     tf.logging.info("Computing Kernel")
     self.k_data_data_reg = self.k_data_data + tf.eye(

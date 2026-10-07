@@ -220,6 +220,10 @@ def generate_demo_data():
 
     count = 0
 
+    # Reduced-scale demonstration of the same sigma_w^2 / sigma_b^2
+    # sweep used for Figure 4. The full project uses a 10 x 10 grid;
+    # this smaller grid is run during Docker testing to verify the complete
+    # experiment-to-CSV-to-heatmap pipeline on a clean clone.
     for nonlinearity in NONLINEARITIES:
         for bias_var in DEMO_BIAS_VALUES:
             for weight_var in DEMO_WEIGHT_VALUES:
@@ -603,8 +607,9 @@ def main():
 
     # -------------------------------------------------------------
     # Part 3:
-    # Reproduce final project figure from the committed full
-    # experimental datasets.
+    # Reproduce the final Figure 4-style three-panel heatmap from the
+    # committed full MNIST-3k experiment data. Tanh and ReLU reproduce
+    # the paper's nonlinearities; Erf is the project extension.
     # -------------------------------------------------------------
 
     full_results = load_results([

@@ -284,9 +284,10 @@ def main():
         if x.strip()
     ]
 
-    # Appendix D of the paper used 30 evenly spaced values from
-    # 0.1 to 5.0 for sigma_w^2 and 30 values from 0 to 2.0
-    # for sigma_b^2. grid_size allows us to test a smaller version first.
+    # Reproduces the weight- and bias-variance sweep used for Figure 4.
+    # Appendix D uses 30 evenly spaced sigma_w^2 values from 0.1 to 5.0
+    # and 30 sigma_b^2 values from 0.0 to 2.0. This implementation keeps
+    # the same ranges but allows a smaller grid for computational reasons.
     weight_values = np.linspace(
         args.weight_min,
         args.weight_max,
@@ -320,6 +321,9 @@ def main():
 
     print("Previously completed experiments:", len(completed))
 
+    # Figure 4 evaluates classification performance over every
+    # (sigma_w^2, sigma_b^2) pair for each nonlinearity. These nested
+    # loops implement that hyperparameter sweep.
     for nonlinearity in nonlinearities:
         for bias_var in bias_values:
             for weight_var in weight_values:
@@ -351,6 +355,9 @@ def main():
                     .format(run_number, total_runs)
                 )
 
+                # Each grid point runs the NNGP experiment with one fixed choice of
+                # nonlinearity, depth, sigma_w^2, and sigma_b^2; the resulting test
+                # accuracy becomes one cell of the Figure 4-style heatmap.
                 result = run_single_experiment(
                     nonlinearity=nonlinearity,
                     depth=args.depth,
