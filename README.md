@@ -135,3 +135,7 @@ The main differences are:
 - **Theoretical phase boundaries:** This project focuses on reproducing the empirical accuracy heatmaps and does not reproduce the theoretical phase-boundary curves shown alongside the heatmaps in the original paper.
 
 These changes reduce computational cost while preserving the main comparison between network nonlinearities and the relationship between NNGP performance, weight variance, and bias variance.
+
+## References
+
+Lee, J., Bahri, Y., Novak, R., Schoenholz, S. S., Pennington, J., & Sohl-Dickstein, J. (2018). *Deep Neural Networks as Gaussian Processes*. International Conference on Learning Representations (ICLR). https://openreview.net/forum?id=B1EA-M-0Z
