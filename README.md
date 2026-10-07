@@ -1,18 +1,10 @@
-# NNGP Phase Diagram Reproduction and Erf Extension
+# NNGP Phase Diagram Reproduction with Erf Extension
 
 This project reproduces the phase-diagram experiment from Figure 4 of Lee et al., *Deep Neural Networks as Gaussian Processes* (ICLR 2018), using the authors' original `brain-research/nngp` codebase.
 
 The project evaluates NNGP classification accuracy across different weight and bias variances. The original Tanh and ReLU nonlinearities are reproduced, and the project is extended by adding the error-function (Erf) nonlinearity.
 
 ---
-
-## Target Figure
-
-The target is Figure 4 from:
-
-Lee, J., Bahri, Y., Novak, R., Schoenholz, S. S., Pennington, J., & Sohl-Dickstein, J. (2018). *Deep Neural Networks as Gaussian Processes*. ICLR 2018.
-
-Figure 4 shows MNIST classification performance at depth 50 across combinations of weight variance, `sigma_w^2`, and bias variance, `sigma_b^2`, for Tanh and ReLU networks.
 
 ### Original vs. Reproduction
 
@@ -21,7 +13,7 @@ Figure 4 shows MNIST classification performance at depth 50 across combinations 
 | <img src="figures/original_figure4.png" width="500"> | <img src="figures/reproduction_figure4.png" width="500"> |
 | Lee et al. Figure 4 | Tanh, ReLU, and Erf results from this project |
 
-The reproduction shows the same general structure as the paper. Tanh produces a diagonal region of high accuracy as weight and bias variance change, while ReLU produces a narrower high-accuracy region primarily controlled by weight variance. The third panel shows the Erf extension.
+The reproduction shows the same general structure as the paper. Tanh produces a diagonal region of high accuracy as weight and bias variance change, while ReLU produces a narrower high-accuracy region primarily controlled by weight variance. The third panel shows the Erf extension which shows similarities to Tanh.
 
 ---
 
