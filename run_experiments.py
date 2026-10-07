@@ -72,6 +72,9 @@ flags.DEFINE_integer('max_var', 100,
 flags.DEFINE_integer('max_gauss', 10,
                      'Range for gaussian integration.')
 
+def erf(x):                         #Allows error function for non-linearity
+  """Error-function activation."""
+  return tf.math.erf(x)
 
 def set_default_hparams():
   return tf.contrib.training.HParams(
@@ -131,6 +134,8 @@ def run_nngp_eval(hparams, run_dir):
     nonlin_fn = tf.tanh
   elif hparams.nonlinearity == 'relu':
     nonlin_fn = tf.nn.relu
+  elif hparams.nonlinearity == 'erf': #Added for error function non-linearity
+    nonlin_fn = erf
   else:
     raise NotImplementedError
 
